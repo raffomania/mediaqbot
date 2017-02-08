@@ -6,3 +6,4 @@ verify_ssl = true
 python-telegram-bot = "*"
 flask = "*"
 flask-redis = "*"
+requests = "*"
