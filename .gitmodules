@@ -1,0 +1,3 @@
+[submodule "python-mpv"]
+	path = client/python-mpv
+	url = https://github.com/jaseg/python-mpv.git
