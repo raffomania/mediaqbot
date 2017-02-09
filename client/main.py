@@ -38,21 +38,22 @@ class Playlist:
     def update_mpv(self, player):
         """Inserts tracks to mpv playlist until the instances total length - played tracks 
         is equal the tracks to be played in MPV."""
-        print("Updating mpv internal playlist")
-        tbp_mpv = to_be_played(player)
-        tbp_list = len(self.playlist) - len(self.played)
-        print("mpv playlist still has %d to play while playlist class has %d" % (tbp_mpv, tbp_list))
-        while tbp_mpv < tbp_list:
-            index = tbp_mpv
-            url = self.not_played[index][1]
-            if player._get_property("playlist-count", proptype=int) == 0:
-                print("Playinh %s now..." % url)
-                player.loadfile(url, "replace")
-            else:
-                player.loadfile(url, mode="append")
-                print("Appending %s to mpv playlist" % url)
+        print(self.played)
+        while True:
             tbp_mpv = to_be_played(player)
             tbp_list = len(self.playlist) - len(self.played)
+            print("mpv playlist still has %d to play while playlist class has %d" % (tbp_mpv, tbp_list))
+            if tbp_mpv >= tbp_list:
+                break
+            index = tbp_mpv
+            url = self.not_played[index][1]
+            playlist_count = player._get_property("playlist-count", proptype=int)
+            if playlist_count == 0:
+                print("Playing %s now..." % url)
+                player.loadfile(url, "replace")
+            else:
+                print("Appending %s to mpv playlist" % url)
+                player.loadfile(url, mode="append")
 
 
 def main():
@@ -67,7 +68,7 @@ def main():
     )
     playlist = Playlist()
     player.observe_property("percent-pos", lambda p: check_finished(p if p else 0, player, playlist))
-    # player.observe_property("playlist-pos", lambda p: check_track_skip(p, player, playlist))
+    player.observe_property("playlist-pos", lambda p: check_track_skip(p, player, playlist))
     while True:
         playlist.update()
         playlist.update_mpv(player)
@@ -78,8 +79,8 @@ def main():
 
 def to_be_played(player):
     pos = player._get_property("playlist-pos", proptype=int) or 0
-    length = player._get_property("playlist-count", proptype=int) or 1
-    return length - (pos + 1)
+    length = player._get_property("playlist-count", proptype=int)
+    return length - pos #length - (pos + 1)
 
 
 def check_track_skip(pos, player, playlist):
