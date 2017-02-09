@@ -2,12 +2,58 @@ import mpv
 import requests
 import sys
 import time
+from collections import OrderedDict
 
 URL = "http://localhost:5000"
 ID = sys.argv[1]
-QUERY = "%s/%s" % (URL, ID)
-FINISHED = []
-RELOAD_INTERVAL = 5
+FULL_URL = "%s/%s" % (URL, ID)
+RELOAD_INTERVAL = 1
+
+class Playlist:
+    def __init__(self):
+        self.played = set()
+        self.playlist = OrderedDict()
+
+    def update(self):
+        res = requests.get(FULL_URL)
+        print("Updating playlist form server")
+        new_items = [(vid["id"], vid["url"]) for vid in res.json()]
+        self.playlist.update(new_items)
+
+    def set_one_played(self, name=None):
+        """Registers one video as successfully played."""
+        for id, url in self.playlist.items():
+            if id not in self.played:
+                if name == url:
+                    print("Setting %s to 'played'" % name)
+                    # Todo: some queue for to pop items
+                    r = requests.get(FULL_URL + "/pop")
+                    self.played.add(id)
+                return
+
+    @property
+    def not_played(self):
+        return [(k, url) for k, url in self.playlist.items() if k not in self.played]
+
+    def update_mpv(self, player):
+        """Inserts tracks to mpv playlist until the instances total length - played tracks 
+        is equal the tracks to be played in MPV."""
+        print("Updating mpv internal playlist")
+        tbp_mpv = to_be_played(player)
+        tbp_list = len(self.playlist) - len(self.played)
+        print("mpv playlist still has %d to play while playlist class has %d" % (tbp_mpv, tbp_list))
+        while tbp_mpv < tbp_list:
+            index = tbp_mpv
+            url = self.not_played[index][1]
+            if player._get_property("playlist-count", proptype=int) == 0:
+                print("Playinh %s now..." % url)
+                player.loadfile(url, "replace")
+            else:
+                player.loadfile(url, mode="append")
+                print("Appending %s to mpv playlist" % url)
+            tbp_mpv = to_be_played(player)
+            tbp_list = len(self.playlist) - len(self.played)
+
 
 def main():
     player = mpv.MPV(
@@ -16,76 +62,39 @@ def main():
         input_default_bindings=True,
         input_vo_keyboard=True,
         video_osd="yes",
-        keep_open="yes"
+        keep_open="yes",
+        log_file="lol.log"
     )
-    player.observe_property("percent-pos", lambda p: check_finished(p if p else 0, player))
-    player.observe_property("playlist-pos", lambda p: check_track_skip(p, player))
-    playlist = []
+    playlist = Playlist()
+    player.observe_property("percent-pos", lambda p: check_finished(p if p else 0, player, playlist))
+    # player.observe_property("playlist-pos", lambda p: check_track_skip(p, player, playlist))
     while True:
-        playlist = get_playlist()
-        if len(playlist) == 0:
-            time.sleep(RELOAD_INTERVAL)
-        else:
-            break
-    player.play(playlist[0]["url"])
-
-    # this waiting could be done nicer, maybe wait for exit event?
-    while True:
-        print(playlist)
-        playlist = update_playlist(playlist, player)
+        playlist.update()
+        playlist.update_mpv(player)
         time.sleep(RELOAD_INTERVAL)
+    player.wait_for_playback()
 
 
-def get_playlist():
-    current = get_current()
-    return [current] if current != {} else []
+
+def to_be_played(player):
+    pos = player._get_property("playlist-pos", proptype=int) or 0
+    length = player._get_property("playlist-count", proptype=int) or 1
+    return length - (pos + 1)
 
 
-def update_playlist(existing, player):
-    next = get_next()
-    if len(existing) == 0:
-        return get_playlist()
-    if next != {} and next["id"] != existing[-1]["id"]:
-        player.loadfile(next["url"], mode="append")
-        existing.append(next)
-    return existing
-
-
-def get_next():
-    r = requests.get(QUERY + "/next")
-    return r.json()
-
-
-def get_current():
-    r = requests.get(QUERY + "/current")
-    return r.json()
-
-
-def check_track_skip(pos, player):
+def check_track_skip(pos, player, playlist):
     # we don't want to remove at launch when on track 0
     if pos and pos > 0:
         old_pos = pos - 1
         name = player._get_property("playlist/%d/filename" % old_pos)
-        set_finished(old_pos, name)
+        playlist.set_one_played(name)
 
 
-def set_finished(index, name):
-    global FINISHED
-    if index in FINISHED:
-        return
-    else:
-        r = requests.get(QUERY + "/pop")
-        if r.status_code == 200:
-            print("Popped from server queue")
-            FINISHED.append(index)
-        # send name to server
-
-
-def check_finished(percent, player):
+def check_finished(percent, player, playlist):
     pos = player._get_property("playlist-pos", proptype=int) or 0
     name = player._get_property("playlist/%d/filename" % pos)
     if percent > 95:
-        set_finished(pos, name)
+        playlist.set_one_played(name)
 
 
 if __name__ == "__main__":
