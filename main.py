@@ -1,11 +1,12 @@
 from telegram.ext import Updater, CommandHandler, Job
 import logging
 from os import environ
-from collections import defaultdict
 from flask import Flask, jsonify
 from flask_redis import FlaskRedis
 import uuid
 import json
+import names
+from hashlib import sha256
 
 app = Flask(__name__)
 redis_store = FlaskRedis(app)
@@ -15,9 +16,25 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+if not environ.get("MEDIAQ_PEPPER"):
+    logger.warn("No MEDIAQ_PEPPER provided, playlist ids will be guessable.")
+
+def get_name(name, pepper=environ.get("MEDIAQ_PEPPER")):
+    hashed = sha256((str(name) + str(pepper)).encode("utf-8")).digest()
+    return names.get_name(int.from_bytes(hashed, byteorder='big', signed=False))
+
+def start(bot, update):
+    update.message.reply_text("The queue id for this chat is: %s" % get_name(update.message.chat_id))
+
+def help(bot, update):
+    update.message.reply_text("""Welcome to MediaQBot!
+Use /add to add a URL of a web video.
+
+When starting the player, this will be your playlist id:
+%s""" % get_name(update.message.chat_id))
 
 def add(bot, update, args):
-    chat_id = update.message.chat_id
+    chat_id = get_name(update.message.chat_id)
     url = args[0] if len(args) > 0 else None
     if url:
         tup = json.dumps({"id": str(uuid.uuid4()), "url": url})
@@ -61,6 +78,8 @@ def main():
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("add", add, pass_args=True))
+    dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(CommandHandler("start", start))
 
     dp.add_error_handler(error)
 
