@@ -48,9 +48,15 @@ class Playlist:
             index = tbp_mpv
             url = self.not_played[index][1]
             playlist_count = player._get_property("playlist-count", proptype=int)
+            playlist_current = player._get_property("playlist-pos", proptype=int)
+            percent = player._get_property("percent-pos", proptype=int) or 0
             if playlist_count == 0:
                 print("Playing %s now..." % url)
                 player.loadfile(url, "replace")
+            elif playlist_count == playlist_current + 1 and percent >= 99:
+                print("Append Playing %s now..." % url)
+                player.loadfile(url, "append")
+                player._set_property("pause", False, proptype=bool)
             else:
                 print("Appending %s to mpv playlist" % url)
                 player.loadfile(url, mode="append")
@@ -80,6 +86,9 @@ def main():
 def to_be_played(player):
     pos = player._get_property("playlist-pos", proptype=int) or 0
     length = player._get_property("playlist-count", proptype=int)
+    percent = player._get_property("percent-pos", proptype=int) or 0
+    if percent >= 99:
+        pos += 1
     return length - pos #length - (pos + 1)
 
 
