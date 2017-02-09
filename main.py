@@ -13,7 +13,7 @@ redis_store = FlaskRedis(app)
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                   level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 if not environ.get("MEDIAQ_PEPPER"):
@@ -70,7 +70,7 @@ def video_list(chat_id):
 
 @app.route("/<chat_id>/pop")
 def pop_video(chat_id):
-    return jsonify({"popped": redis_store.rpop(chat_id).decode("utf-8")})
+    return jsonify({"popped": redis_store.lpop(chat_id).decode("utf-8")})
 
 def main():
     updater = Updater(environ.get("TELEGRAM_TOKEN"))
