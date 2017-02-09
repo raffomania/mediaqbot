@@ -17,6 +17,11 @@ def get_name(id, words=4):
 
 
 NOUNS = [
+    "Moose",
+    "Unicorn",
+    "Pony",
+    "Crucible",
+    "Marker",
     "Commitment",
     "Carbon",
     "Rhino",
@@ -30,6 +35,7 @@ NOUNS = [
     "Donkey",
     "Burger",
     "Pizza",
+    "Stoning",
     "Snake",
     "Lizard",
     "Ship",
@@ -165,7 +171,16 @@ ADJECTIVES = [
     "Smart",
     "Reliable",
     "Gentrified",
-    "Retarded"
+    "Retarded",
+    "Penetrated",
+    "Interchangeable",
+    "Destructible",
+    "Dismissive",
+    "Permissive",
+    "Polite",
+    "Offensive",
+    "Possessive",
+    "Aging"
 ]
 
 NOUNS = sorted(set(NOUNS))
