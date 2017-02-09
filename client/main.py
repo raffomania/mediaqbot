@@ -92,7 +92,9 @@ def check_track_skip(pos, player, playlist):
 
 
 def check_finished(percent, player, playlist):
-    pos = player._get_property("playlist-pos", proptype=int) or 0
+    pos = player._get_property("playlist-pos", proptype=int)
+    if pos is None:
+        return None
     name = player._get_property("playlist/%d/filename" % pos)
     if percent > 95:
         playlist.set_one_played(name)
