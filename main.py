@@ -7,6 +7,7 @@ import uuid
 import json
 import names
 from hashlib import sha256
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 redis_store = FlaskRedis(app)
@@ -43,7 +44,7 @@ When starting the player, this will be your playlist id:
 
 
 def valid_url(url):
-    parsed = urllib.parse(url)
+    parsed = urlparse(url)
     return len(parsed.scheme) > 0 and len(parsed.netloc) > 0
 
 
@@ -55,11 +56,11 @@ def add(bot, update, args):
         redis_store.rpush(chat_id, tup)
         logger.info("enqing URL %s for chat [%s]" % (url, chat_id))
     elif url:
-        update.message.reply_text("""Sorry, that doesn't look like a valid URL.
-                                  For examples see /help.""")
+        update.message.reply_text("""Sorry, that doesn't look like a valid URL
+For examples see /help.""")
     else:
         update.message.reply_text("""Please provide a URL!
-                                  For examples see /help.""")
+For examples see /help.""")
 
 
 def error(bot, update, error):
