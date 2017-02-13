@@ -42,14 +42,24 @@ When starting the player, this will be your playlist id:
 %s""" % get_name(update.message.chat_id))
 
 
+def valid_url(url):
+    parsed = urllib.parse(url)
+    return len(parsed.scheme) > 0 and len(parsed.netloc) > 0
+
+
 def add(bot, update, args):
     chat_id = get_name(update.message.chat_id)
     url = args[0] if len(args) > 0 else None
-    if url:
+    if url and valid_url(url):
         tup = json.dumps({"id": str(uuid.uuid4()), "url": url})
         redis_store.rpush(chat_id, tup)
-
-    logger.info("enqing URL %s for chat [%s]" % (url, chat_id))
+        logger.info("enqing URL %s for chat [%s]" % (url, chat_id))
+    elif url:
+        update.message.reply_text("""Sorry, that doesn't look like a valid URL.
+                                  For examples see /help.""")
+    else:
+        update.message.reply_text("""Please provide a URL!
+                                  For examples see /help.""")
 
 
 def error(bot, update, error):
