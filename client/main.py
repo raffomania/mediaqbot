@@ -60,14 +60,11 @@ class Playlist:
         while True:
             tbp_mpv = to_be_played(player)
             tbp_list = len(self.playlist) - len(self.played)
-            playlist_count = player._get_property(
-                "playlist-count", proptype=int
-            )
-            playlist_current = player._get_property(
-                "playlist-pos", proptype=int
-            )
-            if playlist_current is None:
-                print("Playlist state 'none' reached. Recovering...")
+            playlist_count = player.playlist_length
+            playlist_current = player.playlist_position
+            print(tbp_mpv, tbp_list)
+            if playlist_current is None and playlist_count > 0:
+                print("Playlist state 'none' reached. Trying to recover...")
                 self.set_mpv_playlist(player)
             if tbp_mpv >= tbp_list:
                 break
@@ -117,8 +114,8 @@ def main():
 
 
 def to_be_played(player):
-    pos = player._get_property("playlist-pos", proptype=int) or 0
-    length = player._get_property("playlist-count", proptype=int)
+    pos = player.playlist_position or 0
+    length = player.playlist_length
     percent = player._get_property("percent-pos", proptype=int) or 0
     if percent >= 99:
         pos += 1
