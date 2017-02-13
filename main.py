@@ -1,4 +1,4 @@
-from telegram.ext import Updater, CommandHandler, Job
+from telegram.ext import Updater, CommandHandler
 import logging
 from os import environ
 from flask import Flask, jsonify, request, abort
@@ -23,7 +23,9 @@ if not environ.get("MEDIAQ_PEPPER"):
 
 def get_name(name, pepper=environ.get("MEDIAQ_PEPPER")):
     hashed = sha256((str(name) + str(pepper)).encode("utf-8")).digest()
-    return names.get_name(int.from_bytes(hashed, byteorder='big', signed=False))
+    return names.get_name(
+        int.from_bytes(hashed, byteorder='big', signed=False)
+    )
 
 
 def start(bot, update):

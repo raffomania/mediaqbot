@@ -43,25 +43,36 @@ class Playlist:
         return [(k, url) for k, url
                 in self.playlist.items() if k not in self.played]
 
+    def set_mpv_playlist(self, player):
+        player.playlist_clear()
+        first = True
+        for k, v in self.playlist.items():
+            if k not in self.played:
+                if first:
+                    player.loadfile(v, mode="replace")
+                    first = False
+                else:
+                    player.loadfile(v, mode="append")
+
     def update_mpv(self, player):
         """Inserts tracks to mpv playlist until the instances total
         length - played tracks is equal the tracks to be played in MPV."""
-        print("MPV UPdate")
         while True:
             tbp_mpv = to_be_played(player)
             tbp_list = len(self.playlist) - len(self.played)
-            print("To be played in mpv: %d" % tbp_mpv)
-            print("To be played in local: %d" % tbp_list)
-            if tbp_mpv >= tbp_list:
-                break
-            index = tbp_mpv
-            url = self.not_played[index][1]
             playlist_count = player._get_property(
                 "playlist-count", proptype=int
             )
             playlist_current = player._get_property(
                 "playlist-pos", proptype=int
             )
+            if playlist_current is None:
+                print("Playlist state 'none' reached. Recovering...")
+                self.set_mpv_playlist(player)
+            if tbp_mpv >= tbp_list:
+                break
+            index = tbp_mpv
+            url = self.not_played[index][1]
             percent = player._get_property("percent-pos", proptype=int) or 0
             if playlist_count == 0:
                 print("Playing %s now..." % url)
@@ -70,7 +81,6 @@ class Playlist:
                     (playlist_count == playlist_current + 1 and percent >= 99):
                 print("Appending and playing %s now..." % url)
                 player.loadfile(url, "append")
-                player.playlist_next()
                 player._set_property("pause", False, proptype=bool)
             else:
                 print("Appending %s to mpv playlist" % url)
@@ -80,12 +90,12 @@ class Playlist:
 def main():
     player = mpv.MPV(
         "osc",
-        "idle",
         ytdl=True,
         input_default_bindings=True,
         input_vo_keyboard=True,
         video_osd="yes",
         keep_open="yes",
+        idle="yes",
         log_file="lol.log"
     )
     playlist = Playlist()

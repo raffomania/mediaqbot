@@ -18,5 +18,5 @@ The following environment variables should be set:
 * `MEDIAQ_PEPPER` a secret used for generating room names to make them less guessable
 
 ## TODOs
-* When playback has reached the end and a new title is added playback doesn't start up again.
 * More words for more rooms
+* Some sensitization of URLs currently we are possibly vulnerable to remote code execution attacks on mpv.
