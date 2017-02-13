@@ -5,15 +5,18 @@ This module creates cool human-readable names based on a given numeric id.
 
 def get_name(id, words=4):
     words_lists = []
-    res = []
+    result = []
+
     if words <= 2:
         words_lists = [ADJECTIVES, NOUNS][:words]
     else:
         words_lists = [ADJECTIVES] * (words - 1) + [NOUNS]
+
     for words in words_lists:
-        res.append(words[id % len(words)])
+        result.append(words[id % len(words)])
         id = int(id / len(words))
-    return "".join(res)
+
+    return "".join(result)
 
 
 NOUNS = [
@@ -28,12 +31,13 @@ NOUNS = [
     "Cream",
     "Herring",
     "Chicken",
-    "Dinosaur",
+    "Raptor",
     "Rock",
     "Elephant",
     "Milk",
     "Donkey",
     "Burger",
+    "Faggot",
     "Pizza",
     "Stoning",
     "Snake",
@@ -52,12 +56,13 @@ NOUNS = [
     "Battery",
     "Assault",
     "Bat",
+    "Bukkake",
     "Racket",
     "Ball",
     "Neighborhood",
     "Beak",
-    "Goat",
-    "Truck",
+    "Goatfucker",
+    "Clustertruck",
     "Boat",
     "Ship",
     "Shipment",
@@ -65,40 +70,84 @@ NOUNS = [
     "Cheese",
     "Pan",
     "Noodle",
+    "Hottie",
+    "Edgelord",
+    "Fedora",
+    "Feces",
+    "Facehugger",
+    "Troll",
+    "Meme",
     "Casserole",
     "Lasagna",
     "Stew",
     "Banana",
     "Pineapple",
-    "Mushroom",
+    "Shroom",
     "Bark",
     "Boomerang",
-    "Gang",
+    "Gangbang",
     "Crew",
     "Statue",
     "Memorial",
     "Park",
-    "Graffiti"
+    "Graffiti",
+    "Shitstorm",
+    "Pepe",
+    "Hooker",
+    "Phallus",
+    "Erection",
+    "Poop",
+    "Shit",
+    "Fuck",
+    "Motherfuck",
+    "Ripperoni",
+    "Bride",
+    "Gringo",
+    "Content",
+    "Hipster",
+    "Balls",
+    "Hitler",
+    "Sex",
+    "Psychorapist",
+    "Racist",
+    "Trump",
+    "Politician"
 ]
 
 ADJECTIVES = [
     "Brazen",
+    "Bitchy",
+    "Sweaty",
+    "Racist",
+    "Halal",
+    "Kinky",
+    "Steamy",
+    "Dead",
+    "Mecha",
+    "Shaved",
     "Conditioned",
     "Reconditioned",
     "Mesmerizing",
     "Creamy",
+    "Rekt",
     "Crispy",
     "Cheerful",
     "Greasy",
+    "Jurassic",
     "Disgusting",
     "Slimy",
     "Shipped",
     "Frozen",
-    "Fried",
+    "DeepFried",
     "Liquid",
     "Dried",
     "Dry",
     "Deep",
+    "Deeper",
+    "Deepest",
+    "Dank",
+    "Indecent",
+    "HumanReadable",
     "Hard",
     "Red",
     "Rotten",
@@ -180,7 +229,12 @@ ADJECTIVES = [
     "Polite",
     "Offensive",
     "Possessive",
-    "Aging"
+    "Aging",
+    "Stoned",
+    "Vegetarian",
+    "Nigerian",
+    "High",
+    "Erect"
 ]
 
 NOUNS = sorted(set(NOUNS))
