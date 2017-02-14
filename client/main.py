@@ -5,10 +5,8 @@ import time
 from collections import OrderedDict
 import threading
 from queue import Queue
+import argparse
 
-URL = "http://localhost:5000"
-ID = sys.argv[1]
-FULL_URL = "%s/%s" % (URL, ID)
 RELOAD_INTERVAL = 1
 _server_pop_queue = Queue()
 
@@ -19,9 +17,9 @@ class Playlist:
         self.played = set()
         self.playlist = OrderedDict()
 
-    def update(self):
+    def update(self, url):
         try:
-            res = requests.get(FULL_URL)
+            res = requests.get(url)
             print("Updating playlist form server")
             new_items = [(vid["id"], vid["url"]) for vid in res.json()]
             self.playlist.update(new_items)
@@ -84,7 +82,9 @@ class Playlist:
                 player.loadfile(url, mode="append")
 
 
-def main():
+def main(id, hostname="mediaq.beep.center"):
+    url = "http://" + hostname
+    full_url = "%s/%s" % (url, id)
     player = mpv.MPV(
         "osc",
         ytdl=True,
@@ -104,10 +104,10 @@ def main():
         "playlist-pos",
         lambda p: check_track_skip(p, player, playlist)
     )
-    pop_thread = threading.Thread(target=pop_server, args=(_server_pop_queue,))
+    pop_thread = threading.Thread(target=pop_server, args=(_server_pop_queue, full_url))
     pop_thread.start()
     while True:
-        playlist.update()
+        playlist.update(full_url)
         playlist.update_mpv(player)
         time.sleep(RELOAD_INTERVAL)
     player.wait_for_playback()
@@ -130,11 +130,11 @@ def check_track_skip(pos, player, playlist):
         playlist.set_one_played(name)
 
 
-def pop_server(queue):
+def pop_server(queue, url):
     while True:
         id = queue.get()
         try:
-            r = requests.post(FULL_URL + "/pop", json={"id": id})
+            r = requests.post(url + "/pop", json={"id": id})
             if r.status_code != 200:
                 print("HTTP error %d" % r.status_code)
             else:
@@ -155,4 +155,25 @@ def check_finished(percent, player, playlist):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Client for mediaQbot."
+    )
+    parser.add_argument(
+        "playlist_id",
+        help="The identifier of your playlist."
+    )
+    parser.add_argument(
+        "hostname",
+        help="Hostname of the mediaQbot server.",
+        default="mediaq.beep.center",
+        nargs="?"
+    )
+    parser.add_argument(
+        "--reload-interval",
+        help="Set at which interval (in seconds) the server is polled for new Items.",
+        dest="interval",
+        default=5
+    )
+    args = parser.parse_args()
+    RELOAD_INTERVAL = args.interval
+    main(args.playlist_id, args.hostname)
