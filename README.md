@@ -19,4 +19,4 @@ The following environment variables should be set:
 
 ## TODOs
 * More words for more rooms
-* Some sensitization of URLs currently we are possibly vulnerable to remote code execution attacks on mpv.
+* Client should handle hostnames better, check if a schema was already provided etc.

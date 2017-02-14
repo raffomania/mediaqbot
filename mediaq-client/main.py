@@ -82,7 +82,7 @@ class Playlist:
 
 
 def main(id, hostname="mediaq.beep.center"):
-    url = "http://" + hostname
+    url = "https://" + hostname
     full_url = "%s/%s" % (url, id)
     player = mpv.MPV(
         "osc",
@@ -159,7 +159,7 @@ def check_finished(percent, player, playlist):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Client for mediaQbot."
+        description="Client for mediaqbot."
     )
     parser.add_argument(
         "playlist_id",
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "hostname",
-        help="Hostname of the mediaQbot server.",
+        help="Hostname of the mediaqbot server.",
         default="mediaq.beep.center",
         nargs="?"
     )
