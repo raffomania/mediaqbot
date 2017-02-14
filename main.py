@@ -113,9 +113,10 @@ def pop_video(chat_id):
         )
 
 
-def main():
+def main(debug=False):
     updater = Updater(environ.get("TELEGRAM_TOKEN"))
-    redis_store.flushdb()
+    if debug:
+        redis_store.flushdb()
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("add", add, pass_args=True))
@@ -125,8 +126,10 @@ def main():
     dp.add_error_handler(error)
 
     updater.start_polling()
-    app.run()
+    if debug:
+        app.run(debug=True)
 
 
 if __name__ == "__main__":
-    main()
+    debug = environ.get("MEDIAQ_DEBUG", False)
+    main(debug=debug)
