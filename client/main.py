@@ -1,6 +1,5 @@
 import mpv
 import requests
-import sys
 import time
 from collections import OrderedDict
 import threading
@@ -104,7 +103,11 @@ def main(id, hostname="mediaq.beep.center"):
         "playlist-pos",
         lambda p: check_track_skip(p, player, playlist)
     )
-    pop_thread = threading.Thread(target=pop_server, args=(_server_pop_queue, full_url))
+    pop_thread = threading.Thread(
+        target=pop_server,
+        args=(_server_pop_queue, full_url)
+    )
+
     pop_thread.start()
     while True:
         playlist.update(full_url)
@@ -170,7 +173,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--reload-interval",
-        help="Set at which interval (in seconds) the server is polled for new Items.",
+        help="""Set at which interval (in seconds) the
+ server is checked for new Items.""",
         dest="interval",
         default=5
     )
