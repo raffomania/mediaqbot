@@ -81,8 +81,7 @@ class Playlist:
                 player.loadfile(url, mode="append")
 
 
-def main(id, hostname="mediaq.beep.center"):
-    url = "https://" + hostname
+def main(id, url="https://mediaq.beep.center"):
     full_url = "%s/%s" % (url, id)
     player = mpv.MPV(
         "osc",
@@ -167,8 +166,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "hostname",
-        help="Hostname of the mediaqbot server.",
-        default="mediaq.beep.center",
+        help="URL of the mediaqbot server.",
+        default="https://mediaq.beep.center",
         nargs="?"
     )
     parser.add_argument(

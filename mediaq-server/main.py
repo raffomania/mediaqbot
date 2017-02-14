@@ -103,14 +103,15 @@ def pop_video(chat_id):
     first = redis_store.lindex(chat_id, 0)
     if first is None:
         abort(404)
-    first_decoded = json.loads(first.decode("utf-8"))
-    print(request.get_json())
-    if request.get_json()["id"] != first_decoded["id"]:
-        abort(400)
-    else:
-        return jsonify(
-            {"popped": json.loads(redis_store.lpop(chat_id).decode("utf-8"))}
-        )
+    q = redis_store.lrange(chat_id, 0, 100)
+    for i in q:
+        decoded = json.loads(i.decode("utf-8"))
+        if request.get_json()["id"] == decoded["id"]:
+            return jsonify(
+                {"popped": json.loads(redis_store.lpop(chat_id).decode("utf-8"))}
+            )
+    abort(400)
+
 
 
 def main(debug=False):
@@ -127,7 +128,7 @@ def main(debug=False):
 
     updater.start_polling()
     if debug:
-        app.run(debug=True)
+        app.run()
 
 
 if __name__ == "__main__":
