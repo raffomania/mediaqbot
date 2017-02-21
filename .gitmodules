@@ -1,3 +1,6 @@
 [submodule "python-mpv"]
+	path = client/python-mpv
+	url = git@github.com:hatzel/python-mpv.git
+[submodule "client/mediaqclient/python-mpv"]
 	path = client/mediaqclient/python-mpv
 	url = git@github.com:hatzel/python-mpv.git
