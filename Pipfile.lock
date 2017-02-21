@@ -8,25 +8,65 @@
         ],
         "requires": {},
         "hash": {
-            "sha256": "aa36b810b47fc3cc12d4cc88367c87eac4bcabb6da751fea0577712cb91e80b7"
+            "sha256": "80c063d363f649063d89b66d51e01ad2aea5a958d8dab6f94d587fe9169be45f"
         }
     },
     "default": {
-        "urllib3": {
-            "hash": "sha256:b64c0faa183e9e9e76193146c4147e82a734982c6b6719dca851d6cc4ec90c01",
-            "version": "==1.20"
+        "requests": {
+            "hash": "sha256:1a720e8862a41aa22e339373b526f508ef0c8988baf48b84d3fc891a8e237efb",
+            "version": "==2.13.0"
         },
-        "certifi": {
-            "hash": "sha256:f74a224a9860fd5a2e9757230a7ea3eba82d6d46914780abc18e70c8b58d4bf8",
-            "version": "==2017.1.23"
+        "MarkupSafe": {
+            "hash": "sha256:a4ec1aff59b95a14b45eb2e23761a0179e98319da5a7eb76b56ea8cdc7b871c3",
+            "version": "==0.23"
         },
         "python-telegram-bot": {
             "hash": "sha256:0aa1541790c4c6d08ecf34ccead1c8c68fdfa1b767000ae63fdad05d34cccd59",
             "version": "==5.3.0"
         },
+        "flask-redis": {
+            "hash": "sha256:ffb8e636c7af0226a3074860200602850a5a871169bc53fcde05b7d973aad714",
+            "version": "==0.3.0"
+        },
         "future": {
             "hash": "sha256:e39ced1ab767b5936646cedba8bcce582398233d6a627067d4c6a454c90cfedb",
             "version": "==0.16.0"
+        },
+        "certifi": {
+            "hash": "sha256:f74a224a9860fd5a2e9757230a7ea3eba82d6d46914780abc18e70c8b58d4bf8",
+            "version": "==2017.1.23"
+        },
+        "flask": {
+            "hash": "sha256:7f03bb2c255452444f7265eddb51601806e5447b6f8a2d50bbc77a654a14c118",
+            "version": "==0.12"
+        },
+        "Jinja2": {
+            "hash": "sha256:a7b7438120dbe76a8e735ef7eba6048eaf4e0b7dbc530e100812f8ec462a4d50",
+            "version": "==2.9.5"
+        },
+        "redis": {
+            "hash": "sha256:97156b37d7cda4e7d8658be1148c983984e1a975090ba458cc7e244025191dbd",
+            "version": "==2.10.5"
+        },
+        "uwsgi": {
+            "hash": "sha256:21b3d1ef926d835ff23576193a2c60d4c896d8e21567850cf0677a4764122887",
+            "version": "==2.0.14"
+        },
+        "Werkzeug": {
+            "hash": "sha256:c6f6f89124df0514d886782c658c3e12f2caaa94da34cee3fd82eebf4ebf052b",
+            "version": "==0.11.15"
+        },
+        "itsdangerous": {
+            "hash": "sha256:cbb3fcf8d3e33df861709ecaf89d9e6629cff0a217bc2848f1b41cd30d360519",
+            "version": "==0.24"
+        },
+        "urllib3": {
+            "hash": "sha256:b64c0faa183e9e9e76193146c4147e82a734982c6b6719dca851d6cc4ec90c01",
+            "version": "==1.20"
+        },
+        "click": {
+            "hash": "sha256:29f99fc6125fbc931b758dc053b3114e55c77a6e4c6c3a2674a2dc986016381d",
+            "version": "==6.7"
         }
     },
     "develop": {}
