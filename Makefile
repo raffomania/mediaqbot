@@ -1,4 +1,7 @@
 .PHONY: run
 
 run:
-	./run.sh
+	pipenv run ./run.sh
+
+setup:
+	pipenv install

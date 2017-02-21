@@ -1,4 +1,4 @@
-import mpv
+from . import mpv
 import requests
 import time
 from collections import OrderedDict
@@ -81,6 +81,32 @@ class Playlist:
                 player.loadfile(url, mode="append")
 
 
+def launch():
+    parser = argparse.ArgumentParser(
+        description="Client for mediaqbot."
+    )
+    parser.add_argument(
+        "playlist_id",
+        help="The identifier of your playlist."
+    )
+    parser.add_argument(
+        "hostname",
+        help="URL of the mediaqbot server.",
+        default="https://mediaq.beep.center",
+        nargs="?"
+    )
+    parser.add_argument(
+        "--reload-interval",
+        help="""Set at which interval (in seconds) the
+ server is checked for new Items.""",
+        dest="interval",
+        default=5
+    )
+    args = parser.parse_args()
+    RELOAD_INTERVAL = args.interval
+    main(args.playlist_id, args.hostname)
+
+
 def main(id, url="https://mediaq.beep.center"):
     full_url = "%s/%s" % (url, id)
     player = mpv.MPV(
@@ -154,29 +180,3 @@ def check_finished(percent, player, playlist):
     name = player._get_property("playlist/%d/filename" % pos)
     if percent > 95:
         playlist.set_one_played(name)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Client for mediaqbot."
-    )
-    parser.add_argument(
-        "playlist_id",
-        help="The identifier of your playlist."
-    )
-    parser.add_argument(
-        "hostname",
-        help="URL of the mediaqbot server.",
-        default="https://mediaq.beep.center",
-        nargs="?"
-    )
-    parser.add_argument(
-        "--reload-interval",
-        help="""Set at which interval (in seconds) the
- server is checked for new Items.""",
-        dest="interval",
-        default=5
-    )
-    args = parser.parse_args()
-    RELOAD_INTERVAL = args.interval
-    main(args.playlist_id, args.hostname)
