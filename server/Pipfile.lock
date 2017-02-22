@@ -8,7 +8,7 @@
         ],
         "requires": {},
         "hash": {
-            "sha256": "80c063d363f649063d89b66d51e01ad2aea5a958d8dab6f94d587fe9169be45f"
+            "sha256": "d964acab55546857fb6c0ba0da39c3f293c423961feae3b0598eafc5fbb5a6c1"
         }
     },
     "default": {
@@ -47,10 +47,6 @@
         "redis": {
             "hash": "sha256:97156b37d7cda4e7d8658be1148c983984e1a975090ba458cc7e244025191dbd",
             "version": "==2.10.5"
-        },
-        "uwsgi": {
-            "hash": "sha256:21b3d1ef926d835ff23576193a2c60d4c896d8e21567850cf0677a4764122887",
-            "version": "==2.0.14"
         },
         "Werkzeug": {
             "hash": "sha256:c6f6f89124df0514d886782c658c3e12f2caaa94da34cee3fd82eebf4ebf052b",
