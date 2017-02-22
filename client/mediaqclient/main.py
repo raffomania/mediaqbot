@@ -19,7 +19,7 @@ class Playlist:
     def update(self, url):
         try:
             res = requests.get(url)
-            print("Updating playlist form server")
+            print("Updating playlist from server")
             new_items = [(vid["id"], vid["url"]) for vid in res.json()]
             self.playlist.update(new_items)
         except:
