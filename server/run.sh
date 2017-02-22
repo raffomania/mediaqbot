@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-venv/bin/python mediaq-server/main.py
+python3 mediaq-server/main.py
