@@ -7,7 +7,9 @@ from queue import Queue
 import argparse
 from subprocess import check_output, CalledProcessError
 import json
+import logging
 
+logging.getLogger("mediaqclient")
 RELOAD_INTERVAL = 1
 _server_pop_queue = Queue()
 
@@ -21,15 +23,22 @@ class Playlist:
     def update(self, url):
         try:
             res = requests.get(url)
-            print("Updating playlist from server")
+            logging.debug("Updating playlist from server")
             new_items = []
             for vid in res.json():
                 if vid["id"] not in self.playlist.keys():
                     try:
-                        new_items.append((vid["id"], get_correct_url(vid["url"])))
+                        new_items.append(
+                            (vid["id"], get_correct_url(vid["url"]))
+                        )
                     except ValueError:
-                        print("Can't find a video at %s, setting it to played." % vid["url"])
+                        logging.warn(
+                            "Can't find a video at %s, setting it to played."
+                            % vid["url"]
+                        )
                         _server_pop_queue.put(vid["id"])
+            if len(new_items) > 0:
+                print("Adding new videos from server.")
             self.playlist.update(new_items)
         except requests.exceptions.RequestException:
             print("Can't connect to server :(")
@@ -63,15 +72,17 @@ class Playlist:
     def update_mpv(self, player):
         """Inserts tracks to mpv playlist until the instances total
         length - played tracks is equal the tracks to be played in MPV."""
-        print(player.playlist)
+        logging.debug(player.playlist)
         while True:
             tbp_mpv = to_be_played(player)
             tbp_list = len(self.playlist) - len(self.played)
             playlist_count = player.playlist_length
             playlist_current = player.playlist_position
-            print(tbp_mpv, tbp_list)
+            logging.debug("%d, %d" % (tbp_mpv, tbp_list))
             if playlist_current is None and playlist_count > 0:
-                print("Playlist state 'none' reached. Trying to recover...")
+                logging.debug(
+                    "Playlist state 'none' reached. Trying to recover..."
+                )
                 self.set_mpv_playlist(player)
             if tbp_mpv >= tbp_list:
                 break
@@ -79,15 +90,15 @@ class Playlist:
             url = self.not_played[index][1]
             percent = player._get_property("percent-pos", proptype=int) or 0
             if playlist_count == 0:
-                print("Playing %s now..." % url)
+                logging.debug("Playing %s now..." % url)
                 player.loadfile(url, "replace")
             elif playlist_current is None or \
                     (playlist_count == playlist_current + 1 and percent >= 99):
-                print("Appending and playing %s now..." % url)
+                logging.debug("Appending and playing %s now..." % url)
                 player.loadfile(url, "append")
                 player._set_property("pause", False, proptype=bool)
             else:
-                print("Appending %s to mpv playlist" % url)
+                logging.debug("Appending %s to mpv playlist" % url)
                 player.loadfile(url, mode="append")
 
 
@@ -117,20 +128,31 @@ def launch():
         dest="interval",
         default=5
     )
+    parser.add_argument(
+        "--log-level",
+        help="One of: CRITICAL, ERROR, WARNING, INFO, DEBUG \
+        indicates which error messages should be shown.",
+        default=None,
+        dest="log_level"
+    )
+    global RELOAD_INTERVAL
     args = parser.parse_args()
+    if args.log_level:
+        logging.basicConfig(level=args.log_level)
     RELOAD_INTERVAL = args.interval
     main(args.playlist_id, args.hostname, fullscreen=args.fullscreen)
 
 
 def main(id, url="https://mediaq.beep.center", fullscreen=False):
+    print("Welcome to the mediaqbot client, \
+playback will start once a URL is enqueued.")
     full_url = "%s/%s" % (url, id)
     player = mpv.MPV(
         "osc",
         fullscreen=fullscreen,
         ytdl=True,
         input_default_bindings=True,
-        input_vo_keyboard=True,
-        video_osd="yes",
+        input_vo_keyboard=True, video_osd="yes",
         keep_open="yes",
         idle="yes",
         log_file="lol.log"
@@ -180,9 +202,9 @@ def pop_server(queue, url):
         try:
             r = requests.post(url + "/pop", json={"id": id})
             if r.status_code != 200:
-                print("HTTP error %d" % r.status_code)
+                logging.error("HTTP error %d" % r.status_code)
             else:
-                print("Setting %s to 'played'" % id)
+                logging.info("Setting %s to 'played'" % id)
         except requests.RequestException as e:
             queue.put(id)
             time.sleep(RELOAD_INTERVAL)
@@ -192,18 +214,22 @@ def pop_server(queue, url):
 def get_correct_url(url):
     j = None
     try:
-        j = check_output(["youtube-dl", "-j", "--skip-download", "--max-downloads", "1", url])
+        j = check_output(
+            ["youtube-dl", "-j", "--skip-download",
+             "--max-downloads", "1", url]
+        )
         # TODO: handle lists
     except CalledProcessError as e:
         if e.returncode == 101:
-            print("This appears to be a playlist, only playing the first item.")
+            logging.warn(
+                "This appears to be a playlist, only playing the first item."
+            )
             j = e.output
         else:
             raise
     first, _ = j.decode("utf-8").split("\n", 1)
     out = json.loads(first)
     return out["webpage_url"]
-
 
 
 def check_finished(percent, player, playlist):
