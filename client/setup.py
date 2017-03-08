@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='mediaqbot-client',
     version='0.0.1',
@@ -6,7 +6,7 @@ setup(name='mediaqbot-client',
     author='Hans Ole Hatzel',
     author_email='hhatzel@gmail.com',
     license='MIT',
-    packages=['mediaqclient'],
+    packages=find_packages(),
     entry_points={
         'console_scripts': [
             'mediaq = mediaqclient.main:launch'

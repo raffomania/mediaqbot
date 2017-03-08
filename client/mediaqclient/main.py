@@ -5,6 +5,8 @@ from collections import OrderedDict
 import threading
 from queue import Queue
 import argparse
+from subprocess import check_output
+import json
 
 RELOAD_INTERVAL = 1
 _server_pop_queue = Queue()
@@ -20,9 +22,16 @@ class Playlist:
         try:
             res = requests.get(url)
             print("Updating playlist from server")
-            new_items = [(vid["id"], vid["url"]) for vid in res.json()]
+            new_items = []
+            for vid in res.json():
+                if vid["id"] not in self.playlist.keys():
+                    try:
+                        new_items.append((vid["id"], get_correct_url(vid["url"])))
+                    except ValueError:
+                        print("Can't find a video at %s, setting it to played." % vid["url"])
+                        _server_pop_queue.put(vid["id"])
             self.playlist.update(new_items)
-        except:
+        except requests.RequestError:
             print("Can't connect to server :(")
             return
 
@@ -54,6 +63,7 @@ class Playlist:
     def update_mpv(self, player):
         """Inserts tracks to mpv playlist until the instances total
         length - played tracks is equal the tracks to be played in MPV."""
+        print(player.playlist)
         while True:
             tbp_mpv = to_be_played(player)
             tbp_list = len(self.playlist) - len(self.played)
@@ -172,6 +182,13 @@ def pop_server(queue, url):
             time.sleep(RELOAD_INTERVAL)
         queue.task_done()
 
+
+def get_correct_url(url):
+    j = check_output(["youtube-dl", "-j", "--skip-download", url])
+    # TODO: handle lists
+    first, _ = j.decode("utf-8").split("\n", 1)
+    out = json.loads(first)
+    return out["webpage_url"]
 
 def check_finished(percent, player, playlist):
     pos = player._get_property("playlist-pos", proptype=int)
