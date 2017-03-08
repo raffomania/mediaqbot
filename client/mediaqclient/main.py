@@ -5,7 +5,7 @@ from collections import OrderedDict
 import threading
 from queue import Queue
 import argparse
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 import json
 
 RELOAD_INTERVAL = 1
@@ -31,7 +31,7 @@ class Playlist:
                         print("Can't find a video at %s, setting it to played." % vid["url"])
                         _server_pop_queue.put(vid["id"])
             self.playlist.update(new_items)
-        except requests.RequestError:
+        except requests.exceptions.RequestException:
             print("Can't connect to server :(")
             return
 
@@ -184,11 +184,21 @@ def pop_server(queue, url):
 
 
 def get_correct_url(url):
-    j = check_output(["youtube-dl", "-j", "--skip-download", url])
-    # TODO: handle lists
+    j = None
+    try:
+        j = check_output(["youtube-dl", "-j", "--skip-download", "--max-downloads", "1", url])
+        # TODO: handle lists
+    except CalledProcessError as e:
+        if e.returncode == 101:
+            print("This appears to be a playlist, only playing the first item.")
+            j = e.output
+        else:
+            raise
     first, _ = j.decode("utf-8").split("\n", 1)
     out = json.loads(first)
     return out["webpage_url"]
+
+
 
 def check_finished(percent, player, playlist):
     pos = player._get_property("playlist-pos", proptype=int)
