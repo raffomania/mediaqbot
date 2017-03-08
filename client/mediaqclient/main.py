@@ -106,6 +106,11 @@ def launch():
         nargs="?"
     )
     parser.add_argument(
+        "--fullscreen",
+        help="Launch mpv in full screen mode.",
+        action="store_true"
+    )
+    parser.add_argument(
         "--reload-interval",
         help="""Set at which interval (in seconds) the
  server is checked for new Items.""",
@@ -114,13 +119,14 @@ def launch():
     )
     args = parser.parse_args()
     RELOAD_INTERVAL = args.interval
-    main(args.playlist_id, args.hostname)
+    main(args.playlist_id, args.hostname, fullscreen=args.fullscreen)
 
 
-def main(id, url="https://mediaq.beep.center"):
+def main(id, url="https://mediaq.beep.center", fullscreen=False):
     full_url = "%s/%s" % (url, id)
     player = mpv.MPV(
         "osc",
+        fullscreen=fullscreen,
         ytdl=True,
         input_default_bindings=True,
         input_vo_keyboard=True,
