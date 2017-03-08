@@ -168,7 +168,8 @@ playback will start once a URL is enqueued.")
     )
     pop_thread = threading.Thread(
         target=pop_server,
-        args=(_server_pop_queue, full_url)
+        args=(_server_pop_queue, full_url),
+        daemon=True
     )
 
     pop_thread.start()
@@ -176,7 +177,7 @@ playback will start once a URL is enqueued.")
         playlist.update(full_url)
         playlist.update_mpv(player)
         time.sleep(RELOAD_INTERVAL)
-    player.wait_for_playback()
+    # player.wait_for_playback()
 
 
 def to_be_played(player):
