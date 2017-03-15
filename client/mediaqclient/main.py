@@ -21,6 +21,13 @@ class Playlist:
         self.playlist = OrderedDict()
 
     def update(self, url):
+        def dequeue(url, id):
+            logging.warn(
+                "Can't find a video at %s, setting it to played."
+                % url
+            )
+            _server_pop_queue.put(id)
+
         try:
             res = requests.get(url)
             logging.debug("Updating playlist from server")
@@ -28,15 +35,15 @@ class Playlist:
             for vid in res.json():
                 if vid["id"] not in self.playlist.keys():
                     try:
-                        new_items.append(
-                            (vid["id"], get_correct_url(vid["url"]))
-                        )
+                        url = get_correct_url(vid["url"])
+                        if url:
+                            new_items.append(
+                                (vid["id"], url)
+                            )
+                        else:
+                            dequeue(vid["url"], vid["id"])
                     except ValueError:
-                        logging.warn(
-                            "Can't find a video at %s, setting it to played."
-                            % vid["url"]
-                        )
-                        _server_pop_queue.put(vid["id"])
+                        dequeue(vid["url"], vid["id"])
             if len(new_items) > 0:
                 print("Adding new videos from server.")
             self.playlist.update(new_items)
@@ -226,8 +233,13 @@ def get_correct_url(url):
                 "This appears to be a playlist, only playing the first item."
             )
             j = e.output
+        elif e.returncode:
+            logging.warn("Youtube-dl error :( will skip this item.")
+            return None
         else:
             raise
+    if j is None:
+        return None
     first, _ = j.decode("utf-8").split("\n", 1)
     out = json.loads(first)
     return out["webpage_url"]
