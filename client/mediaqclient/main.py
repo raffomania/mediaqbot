@@ -1,4 +1,4 @@
-from . import mpv
+import mpv
 import requests
 import time
 from collections import OrderedDict
@@ -45,7 +45,7 @@ class Playlist:
                     except ValueError:
                         dequeue(vid["url"], vid["id"])
             if len(new_items) > 0:
-                print("Adding new videos from server.")
+                print("Adding new video(s) from server.")
             self.playlist.update(new_items)
         except requests.exceptions.RequestException:
             print("Can't connect to server :(")
@@ -83,8 +83,8 @@ class Playlist:
         while True:
             tbp_mpv = to_be_played(player)
             tbp_list = len(self.playlist) - len(self.played)
-            playlist_count = player.playlist_length
-            playlist_current = player.playlist_position
+            playlist_count = len(player.playlist)
+            playlist_current = player.playlist_pos
             logging.debug("%d, %d" % (tbp_mpv, tbp_list))
             if playlist_current is None and playlist_count > 0:
                 logging.debug(
@@ -103,7 +103,7 @@ class Playlist:
                     (playlist_count == playlist_current + 1 and percent >= 99):
                 logging.debug("Appending and playing %s now..." % url)
                 player.loadfile(url, "append")
-                player._set_property("pause", False, proptype=bool)
+                player.pause = False
             else:
                 logging.debug("Appending %s to mpv playlist" % url)
                 player.loadfile(url, mode="append")
@@ -188,8 +188,8 @@ playback will start once a URL is enqueued.")
 
 
 def to_be_played(player):
-    pos = player.playlist_position or 0
-    length = player.playlist_length
+    pos = player.playlist_pos or 0
+    length = len(player.playlist)
     percent = player._get_property("percent-pos", proptype=int) or 0
     if percent >= 99:
         pos += 1
@@ -200,7 +200,7 @@ def check_track_skip(pos, player, playlist):
     # we don't want to remove at launch when on track 0
     if pos and pos > 0:
         old_pos = pos - 1
-        name = player._get_property("playlist/%d/filename" % old_pos)
+        name = player.playlist_filenames[old_pos]
         playlist.set_one_played(name)
 
 
@@ -246,9 +246,12 @@ def get_correct_url(url):
 
 
 def check_finished(percent, player, playlist):
-    pos = player._get_property("playlist-pos", proptype=int)
+    pos = player.playlist_pos
     if pos is None:
         return None
-    name = player._get_property("playlist/%d/filename" % pos)
+    name = player.playlist_filenames[pos]
     if percent > 95:
         playlist.set_one_played(name)
+
+
+launch()
