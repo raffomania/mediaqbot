@@ -55,7 +55,7 @@ class Playlist:
         """Registers one video as successfully played."""
         for id, url in self.playlist.items():
             if id not in self.played:
-                if name == url:
+                if name.decode("utf-8").strip() == url.strip():
                     _server_pop_queue.put(id)
                     self.played.add(id)
                     return
