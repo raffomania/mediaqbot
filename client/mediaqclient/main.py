@@ -95,7 +95,7 @@ class Playlist:
                 break
             index = tbp_mpv
             url = self.not_played[index][1]
-            percent = player._get_property("percent-pos", proptype=int) or 0
+            percent = int(player["percent-pos"]) or 0
             if playlist_count == 0:
                 logging.debug("Playing %s now..." % url)
                 player.loadfile(url, "replace")
@@ -190,7 +190,7 @@ playback will start once a URL is enqueued.")
 def to_be_played(player):
     pos = player.playlist_pos or 0
     length = len(player.playlist)
-    percent = player._get_property("percent-pos", proptype=int) or 0
+    percent = int(player["percent-pos"]) or 0
     if percent >= 99:
         pos += 1
     return length - pos
