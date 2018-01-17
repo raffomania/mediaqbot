@@ -55,7 +55,7 @@ class Playlist:
         """Registers one video as successfully played."""
         for id, url in self.playlist.items():
             if id not in self.played:
-                if name.decode("utf-8").strip() == url.strip():
+                if name == url.strip():
                     _server_pop_queue.put(id)
                     self.played.add(id)
                     return
@@ -95,7 +95,10 @@ class Playlist:
                 break
             index = tbp_mpv
             url = self.not_played[index][1]
-            percent = int(player["percent-pos"]) or 0
+            try:
+                percent = int(player._get_property("percent-pos"))
+            except TypeError:
+                percent = 0
             if playlist_count == 0:
                 logging.debug("Playing %s now..." % url)
                 player.loadfile(url, "replace")
@@ -167,11 +170,11 @@ playback will start once a URL is enqueued.")
     playlist = Playlist()
     player.observe_property(
         "percent-pos",
-        lambda p: check_finished(p if p else 0, player, playlist)
+        lambda _, p: check_finished(p if p else 0, player, playlist)
     )
     player.observe_property(
         "playlist-pos",
-        lambda p: check_track_skip(p, player, playlist)
+        lambda _, p: check_track_skip(p, player, playlist)
     )
     pop_thread = threading.Thread(
         target=pop_server,
@@ -190,7 +193,10 @@ playback will start once a URL is enqueued.")
 def to_be_played(player):
     pos = player.playlist_pos or 0
     length = len(player.playlist)
-    percent = int(player["percent-pos"]) or 0
+    try:
+        percent = int(player._get_property("percent-pos"))
+    except TypeError:
+        percent = 0
     if percent >= 99:
         pos += 1
     return length - pos
