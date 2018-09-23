@@ -8,4 +8,4 @@ dev-setup:
 
 deploy-setup:
 	test -d venv || virtualenv venv
-	./venv/bin/pip install -Ur requirements.txt
+	venv/bin/pip install -Ur requirements.txt
