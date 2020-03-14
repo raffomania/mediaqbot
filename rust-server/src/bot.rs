@@ -1,9 +1,10 @@
 use anyhow::{anyhow, Context, Result};
 use bincode;
-use names;
 use sled;
 use teloxide::{prelude::*, utils::command::BotCommand};
 use uuid::Uuid;
+
+use crate::db;
 
 #[derive(BotCommand)]
 #[command(rename = "lowercase", description = "these commands are available:")]
@@ -14,20 +15,6 @@ enum Command {
     Help,
     #[command()]
     Start,
-}
-
-fn get_or_create_chat_name(chat_id: i64, db: &sled::Db) -> Result<String> {
-    let chat_name_key = format!("name_{}", chat_id);
-    match db.get(&chat_name_key)? {
-        Some(name) => String::from_utf8(name.to_vec()).context("Can't decode name"),
-        None => {
-            let new_name = names::Generator::default()
-                .next()
-                .ok_or(anyhow!("Couldn't generate new name"))?;
-            db.insert(&chat_name_key, new_name.clone().into_bytes())?;
-            Ok(new_name)
-        }
-    }
 }
 
 async fn add(cx: DispatcherHandlerCx<Message>) -> Result<()> {
@@ -48,19 +35,15 @@ async fn add(cx: DispatcherHandlerCx<Message>) -> Result<()> {
 
     let url = parts[1];
 
-    let db = sled::open("db.sled")?;
-    let chat_name = get_or_create_chat_name(cx.chat_id(), &db)?;
-    let mut queue: Vec<(Uuid, String)> = match db.get(&chat_name)? {
-        Some(bytes) => bincode::deserialize(&bytes)?,
-        None => Vec::new(),
-    };
-
+    let tree = sled::open("db.sled")?;
+    let chat_name = db::get_or_create_chat_name(cx.chat_id(), &tree)?;
     let uuid = Uuid::new_v4();
+    let mut queue = db::get_or_create_queue(&tree, &chat_name)?;
     queue.push((uuid, url.into()));
 
     println!("{:?}", queue);
 
-    db.insert(&chat_name, bincode::serialize(&queue)?)?;
+    tree.insert(&chat_name, bincode::serialize(&queue)?)?;
 
     Ok(())
 }
@@ -71,8 +54,8 @@ async fn help(cx: DispatcherHandlerCx<Message>) -> Result<()> {
 }
 
 async fn start(cx: DispatcherHandlerCx<Message>) -> Result<()> {
-    let db = sled::open("db.sled")?;
-    let chat_name = get_or_create_chat_name(cx.chat_id(), &db)?;
+    let tree = sled::open("db.sled")?;
+    let chat_name = db::get_or_create_chat_name(cx.chat_id(), &tree)?;
     cx.answer(format!(
         "Your chat ID is \"{}\". Use this when starting the mediaqbot client.",
         chat_name
@@ -100,9 +83,11 @@ async fn handle_commands(rx: DispatcherHandlerRx<Message>) {
         .await;
 }
 
-pub async fn run(bot: std::sync::Arc<Bot>) {
+pub async fn run(bot: std::sync::Arc<Bot>) -> Result<()> {
     Dispatcher::new(bot)
         .messages_handler(handle_commands)
         .dispatch()
         .await;
+
+    Ok(())
 }

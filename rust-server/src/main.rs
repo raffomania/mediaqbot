@@ -1,10 +1,12 @@
 use dotenv::dotenv;
-use std::env;
 use teloxide::prelude::*;
+use tokio;
 
+mod web;
 mod bot;
+mod db;
 
-#[tokio::main]
+#[actix_rt::main]
 async fn main() {
     dotenv().expect("please create an .env file");
     run().await;
@@ -15,5 +17,8 @@ async fn run() {
 
     let bot_instance = Bot::from_env();
 
-    bot::run(bot_instance).await;
+    tokio::select! {
+        _ = bot::run(bot_instance) => {},
+        _ = web::run() => {}
+    }
 }
