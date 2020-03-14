@@ -1,5 +1,6 @@
-use teloxide::prelude::*;
 use dotenv::dotenv;
+use std::env;
+use teloxide::prelude::*;
 
 mod bot;
 
