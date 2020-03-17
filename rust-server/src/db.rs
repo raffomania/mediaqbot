@@ -1,8 +1,8 @@
-use sled;
-use uuid::Uuid;
 use anyhow::{anyhow, Context, Result};
 use bincode;
 use names;
+use sled;
+use uuid::Uuid;
 
 pub fn get_or_create_queue(db: &sled::Db, chat_name: &str) -> Result<Vec<(Uuid, String)>> {
     match db.get(&chat_name)? {

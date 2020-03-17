@@ -1556,6 +1556,7 @@ dependencies = [
  "names",
  "pretty_env_logger",
  "serde",
+ "serde_json",
  "sled",
  "teloxide",
  "tokio",

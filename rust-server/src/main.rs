@@ -2,9 +2,9 @@ use dotenv::dotenv;
 use teloxide::prelude::*;
 use tokio;
 
-mod web;
 mod bot;
 mod db;
+mod web;
 
 #[actix_rt::main]
 async fn main() {
