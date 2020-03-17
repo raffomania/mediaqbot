@@ -1,8 +1,20 @@
-use actix_web::{error, get, web, App, Error, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{error, get, web, App, HttpResponse, HttpServer, Result, post};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+use std::fmt::Display;
 
 use crate::db;
+
+#[derive(Debug)]
+struct AppError(anyhow::Error);
+
+impl error::ResponseError for AppError {}
+impl Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "internal server errror")
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Video {
@@ -10,14 +22,9 @@ struct Video {
     url: String,
 }
 
-#[get("/{chat_name}/next")]
-async fn next(info: web::Path<String>) -> impl Responder {
-    format!("Hello {}!", info)
-}
-
 #[get("/{chat_name}")]
 async fn playlist(chat_name: web::Path<String>) -> Result<HttpResponse> {
-    let db = sled::open("db.sled").map_err(|err| error::ErrorInternalServerError(""))?;
+    let db = sled::open("db.sled").map_err(|_| error::ErrorInternalServerError(""))?;
     let queue = db::get_or_create_queue(&db, &chat_name).map_err(|_| error::ErrorInternalServerError(""))?;
     let items: Vec<Video> = queue.iter().map(|(id, url)| {
         Video {
@@ -28,9 +35,23 @@ async fn playlist(chat_name: web::Path<String>) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(items))
 }
 
-#[get("/{chat_name}/pop")]
-async fn pop(info: web::Path<(u32, String)>) -> impl Responder {
-    format!("Hello {}! id:{}", info.1, info.0)
+#[derive(Debug, Serialize, Deserialize)]
+struct PopRequest {
+    id: Uuid
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PoppedResponse {
+    popped: Uuid
+}
+
+#[post("/{chat_name}/pop")]
+async fn pop(chat_name: web::Path<String>) -> Result<HttpResponse> {
+    let db = sled::open("db.sled").map_err(|_| error::ErrorInternalServerError(""))?;
+    let queue = db::get_or_create_queue(&db, &chat_name).map_err(|_| error::ErrorInternalServerError(""))?;
+    Ok(HttpResponse::Ok().json(PoppedResponse {
+        popped: Uuid::default()
+    }))
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -38,6 +59,7 @@ pub async fn run() -> anyhow::Result<()> {
         App::new()
             .data(web::JsonConfig::default())
             .service(playlist)
+            .service(pop)
     })
     .bind("127.0.0.1:8080")?
     .run()
