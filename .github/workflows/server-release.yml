@@ -36,7 +36,7 @@ jobs:
       - name: run upx
         uses: svenstaro/upx-action@v1-release
         with:
-          file: target/release/mediaqbot-server
+          file: rust-server/target/release/mediaqbot-server
 
       - name: Create Release
         id: create_release
