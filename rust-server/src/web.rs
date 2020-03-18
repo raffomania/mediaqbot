@@ -1,20 +1,16 @@
-use actix_web::{error, get, web, App, HttpResponse, HttpServer, Result, post};
+use actix_web::{error, get, web, App, HttpResponse, HttpServer, post};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use std::fmt::Display;
+use thiserror::Error;
 
 use crate::db;
 
-#[derive(Debug)]
-struct AppError(anyhow::Error);
+#[derive(Debug, Error)]
+#[error("Internal Server Error")]
+struct AppError (#[from] anyhow::Error);
 
 impl error::ResponseError for AppError {}
-impl Display for AppError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "internal server errror")
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Video {
@@ -23,9 +19,9 @@ struct Video {
 }
 
 #[get("/{chat_name}")]
-async fn playlist(chat_name: web::Path<String>) -> Result<HttpResponse> {
-    let db = sled::open("db.sled").map_err(|_| error::ErrorInternalServerError(""))?;
-    let queue = db::get_or_create_queue(&db, &chat_name).map_err(|_| error::ErrorInternalServerError(""))?;
+async fn playlist(chat_name: web::Path<String>) -> Result<HttpResponse, AppError> {
+    let db = sled::open("db.sled").context("couldn't open db")?;
+    let queue = db::get_or_create_queue(&db, &chat_name)?;
     let items: Vec<Video> = queue.iter().map(|(id, url)| {
         Video {
             url: url.clone(),
@@ -40,18 +36,23 @@ struct PopRequest {
     id: Uuid
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct PoppedResponse {
-    popped: Uuid
-}
-
 #[post("/{chat_name}/pop")]
-async fn pop(chat_name: web::Path<String>) -> Result<HttpResponse> {
-    let db = sled::open("db.sled").map_err(|_| error::ErrorInternalServerError(""))?;
-    let queue = db::get_or_create_queue(&db, &chat_name).map_err(|_| error::ErrorInternalServerError(""))?;
-    Ok(HttpResponse::Ok().json(PoppedResponse {
-        popped: Uuid::default()
-    }))
+async fn pop(chat_name: web::Path<String>, req: web::Json<PopRequest>) -> Result<HttpResponse, AppError> {
+    let db = sled::open("db.sled").context("couldn't open db")?;
+    let mut queue = db::get_or_create_queue(&db, &chat_name)?;
+    if !queue.iter().any(|entry| entry.0 == req.id) {
+        return Ok(HttpResponse::BadRequest().finish())
+    }
+
+    match queue.pop() {
+        Some (_) => {}
+        None => return Ok(HttpResponse::NotFound().finish())
+    }
+
+    let serialized = bincode::serialize(&queue).context("failed to serialize queue")?;
+    db.insert(&chat_name.as_str(), serialized).context("couldn't write to db")?;
+
+    Ok(HttpResponse::Ok().finish())
 }
 
 pub async fn run() -> anyhow::Result<()> {

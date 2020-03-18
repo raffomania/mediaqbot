@@ -1,5 +1,4 @@
-use anyhow::{anyhow, Context, Result};
-use bincode;
+use anyhow::{Result};
 use sled;
 use teloxide::{prelude::*, utils::command::BotCommand};
 use uuid::Uuid;
