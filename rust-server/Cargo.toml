@@ -1,5 +1,5 @@
 [package]
-name = "rust-server"
+name = "mediaqbot-server"
 version = "0.1.0"
 authors = ["Rafael Epplee <raffomania@gmail.com>"]
 edition = "2018"

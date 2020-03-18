@@ -1042,6 +1042,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
 
 [[package]]
+name = "mediaqbot-server"
+version = "0.1.0"
+dependencies = [
+ "actix-rt",
+ "actix-web",
+ "anyhow",
+ "bincode",
+ "dotenv",
+ "log",
+ "names",
+ "pretty_env_logger",
+ "serde",
+ "serde_json",
+ "sled",
+ "teloxide",
+ "thiserror",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "memchr"
 version = "2.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1541,27 +1562,6 @@ checksum = "11834e137f3b14e309437a8276714eed3a80d1ef894869e510f2c0c0b98b9f4a"
 dependencies = [
  "hostname",
  "quick-error",
-]
-
-[[package]]
-name = "rust-server"
-version = "0.1.0"
-dependencies = [
- "actix-rt",
- "actix-web",
- "anyhow",
- "bincode",
- "dotenv",
- "log",
- "names",
- "pretty_env_logger",
- "serde",
- "serde_json",
- "sled",
- "teloxide",
- "thiserror",
- "tokio",
- "uuid",
 ]
 
 [[package]]
