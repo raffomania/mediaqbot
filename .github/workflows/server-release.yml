@@ -6,8 +6,6 @@ on: push
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SHORT_HASH: ${GITHUB_SHA::6}
     steps:
       - uses: actions/checkout@master
 
@@ -38,14 +36,19 @@ jobs:
         with:
           file: rust-server/target/release/mediaqbot-server
 
+      - name: get short commit hash
+        id: short_hash
+        run: |
+          echo "::set-output name=value::$(git rev-parse --short $GITHUB_SHA)"
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.SHORT_HASH }}
-          release_name: Release ${{ env.SHORT_HASH }}
+          tag_name: v${{ steps.short_hash.outputs.value }}
+          release_name: Release ${{ steps.short_hash.outputs.value }}
           draft: false
           prerelease: false
 
