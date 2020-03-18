@@ -40,8 +40,6 @@ async fn add(cx: DispatcherHandlerCx<Message>) -> Result<()> {
     let mut queue = db::get_or_create_queue(&tree, &chat_name)?;
     queue.push((uuid, url.into()));
 
-    println!("{:?}", queue);
-
     tree.insert(&chat_name, bincode::serialize(&queue)?)?;
 
     Ok(())
