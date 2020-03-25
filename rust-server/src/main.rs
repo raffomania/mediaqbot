@@ -8,7 +8,7 @@ mod web;
 
 #[actix_rt::main]
 async fn main() {
-    dotenv().expect("please create an .env file");
+    dotenv();
     run().await;
 }
 
