@@ -1,3 +1,4 @@
+use anyhow::Result;
 use dotenv::dotenv;
 use teloxide::prelude::*;
 use tokio;
@@ -7,18 +8,20 @@ mod db;
 mod web;
 
 #[actix_rt::main]
-async fn main() {
-    dotenv();
-    run().await;
+async fn main() -> Result<()> {
+    dotenv()?;
+    run().await?;
+
+    Ok(())
 }
 
-async fn run() {
+async fn run() -> Result<()> {
     teloxide::enable_logging!();
 
     let bot_instance = Bot::from_env();
 
     tokio::select! {
-        _ = bot::run(bot_instance) => {},
-        _ = web::run() => {}
+        r = bot::run(bot_instance) => r,
+        r = web::run() => r
     }
 }
