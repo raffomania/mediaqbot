@@ -23,10 +23,10 @@ jobs:
         working-directory: rust-server
         run: cargo build --release --locked
 
-      - name: run upx
-        uses: svenstaro/upx-action@v2
-        with:
-          file: rust-server/target/release/mediaqbot-server
+      # - name: run upx
+      #   uses: svenstaro/upx-action@v2
+      #   with:
+      #     file: rust-server/target/release/mediaqbot-server
 
       - name: get short commit hash
         id: short_hash
