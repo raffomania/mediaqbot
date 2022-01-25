@@ -24,7 +24,7 @@ jobs:
         run: cargo build --release --locked
 
       - name: run upx
-        uses: svenstaro/upx-action@v1-release
+        uses: svenstaro/upx-action@v2
         with:
           file: rust-server/target/release/mediaqbot-server
 
